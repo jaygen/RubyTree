@@ -156,6 +156,57 @@ module Tree
       self.left_child, self.right_child = self.right_child, self.left_child
     end
 
+    # Returns a copy of the receiver node, with its parent and children links removed.
+    # The original node remains attached to its tree.
+    #
+    # @return [Tree::TreeNode] A copy of the receiver node.
+    def detached_copy
+      Tree::BinaryTreeNode.new(@name, @content ? @content.clone : nil)
+    end
+
+    # Loads a marshalled dump of a tree and returns the root node of the
+    # reconstructed tree. See the Marshal class for additional details.
+    #
+    #
+    # @todo This method probably should be a class method.  It currently clobbers self
+    #       and makes itself the root.
+    #
+    def self.marshal_load(dumped_tree_array)
+      nodes = { }
+      root_node = nil
+      dumped_tree_array.each do |node_hash|
+        name        = node_hash[:name]
+        parent_name = node_hash[:parent]
+        content     = Marshal.load(node_hash[:content])
+
+        if parent_name then
+          nodes[name] = current_node = Tree::BinaryTreeNode.new(name, content)
+          nodes[parent_name].add current_node
+        else
+          # This is the root node, hence initialize self.
+          root_node = nodes[name] = current_node = Tree::BinaryTreeNode.new(name, content)
+        end
+      end
+      root_node
+    end
+
+    # Returns a copy of entire (sub-)tree from receiver node.
+    #
+    # @author Vincenzo Farruggia
+    # @since 0.8.0
+    #
+    # @return [Tree::TreeNode] A copy of (sub-)tree from receiver node.
+    def detached_subtree_copy
+      new_node = detached_copy
+      children { |child| new_node << child.detached_subtree_copy }
+      new_node
+    end
+
+    # Alias for {Tree::TreeNode#detached_subtree_copy}
+    #
+    # @see Tree::TreeNode#detached_subtree_copy
+    alias :dup :detached_subtree_copy
+
     protected :set_child_at
 
   end
