@@ -470,6 +470,10 @@ module Tree
       self.each { |node| yield(node) if node.is_leaf? }
     end
 
+    def first_leaf
+      self.each { |node| return(node) if node.is_leaf?}
+    end
+
     # Returns the requested node from the set of immediate children.
     #
     # If the argument is _numeric_, then the in-sequence array of children is accessed using
